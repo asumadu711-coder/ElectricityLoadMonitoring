@@ -1,0 +1,98 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+class Appliance {
+public:
+    std::string name;
+    double powerRating; // watts
+    double dailyUsageHours;
+
+    Appliance(std::string n, double pr, double hours) : name(n), powerRating(pr), dailyUsageHours(hours) {}
+
+    double calculateEnergyConsumption() {
+        return (powerRating * dailyUsageHours) / 1000.0; // kWh
+    }
+};
+
+int main() {
+    std::vector<Appliance> appliances;
+    int choice;
+    double tariff = 0; // tariff per kWh
+
+    do {
+        std::cout << "Electrical Load Monitoring\n";
+        std::cout << "1. Register appliance\n";
+        std::cout << "2. View appliances\n";
+        std::cout << "3. Calculate energy consumption\n";
+        std::cout << "4. Set electricity tariff\n";
+        std::cout << "5. Display billing summary\n";
+        std::cout << "6. Exit\n";
+        std::cout << "Enter choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            std::string name;
+            double powerRating, dailyUsageHours;
+            std::cout << "Enter appliance name, power rating (W), daily usage hours: ";
+            std::cin >> name >> powerRating >> dailyUsageHours;
+            if (name.empty() || powerRating <= 0 || dailyUsageHours < 0 || dailyUsageHours > 24) {
+                std::cout << "Invalid input! Try again.\n";
+                break;
+            }
+            appliances.push_back(Appliance(name, powerRating, dailyUsageHours));
+            break;
+        }
+        case 2:
+            std::cout << "Registered appliances:\n";
+            for (const auto& app : appliances) {
+                std::cout << "Name: " << app.name << ", Power: " << app.powerRating << "W, Hours: " << app.dailyUsageHours << "\n";
+            }
+            break;
+        case 3: {
+            double totalEnergy = 0;
+            std::cout << "Energy consumption:\n";
+            for (const auto& app : appliances) {
+                double energy = app.calculateEnergyConsumption();
+                totalEnergy += energy;
+                std::cout << app.name << ": " << energy << " kWh\n";
+            }
+            std::cout << "Total energy consumption: " << totalEnergy << " kWh\n";
+            break;
+        }
+        case 4:
+            std::cout << "Enter electricity tariff per kWh: ";
+            std::cin >> tariff;
+            if (tariff <= 0) {
+                std::cout << "Invalid tariff! Try again.\n";
+                tariff = 0;
+            }
+            break;
+        case 5: {
+            if (tariff <= 0) {
+                std::cout << "Set tariff first!\n";
+                break;
+            }
+            double totalEnergy = 0;
+            double totalCost = 0;
+            std::cout << "Billing summary:\n";
+            for (const auto& app : appliances) {
+                double energy = app.calculateEnergyConsumption();
+                totalEnergy += energy;
+                totalCost += energy * tariff;
+                std::cout << app.name << ": " << energy << " kWh, Cost: GHC " << energy * tariff << "\n";
+            }
+            std::cout << "Total energy: " << totalEnergy << " kWh, Total cost: GHC " << totalCost << "\n";
+            break;
+        }
+        case 6:
+            std::cout << "Exiting...\n";
+            break;
+        default:
+            std::cout << "Invalid choice!\n";
+        }
+    } while (choice != 6);
+
+    return 0;
+}
