@@ -1,0 +1,92 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+
+class Appliance {
+public:
+    std::string name;
+    double powerRating; // watts
+    double dailyUsageHours;
+
+    Appliance(std::string n, double pr, double hours) : name(n), powerRating(pr), dailyUsageHours(hours) {}
+
+    double calculateEnergyConsumption() {
+        return (powerRating * dailyUsageHours) / 1000.0; // kWh
+    }
+};
+
+// Save appliances to file
+void saveAppliances(const std::vector<Appliance>& appliances) {
+    std::ofstream file("appliances.txt");
+    for (const auto& app : appliances) {
+        file << app.name << "," << app.powerRating << "," << app.dailyUsageHours << "\n";
+    }
+    file.close();
+}
+
+// Load appliances from file
+std::vector<Appliance> loadAppliances() {
+    std::vector<Appliance> appliances;
+    std::ifstream file("appliances.txt");
+    if (!file.is_open()) return appliances; // Handle missing file
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t comma1 = line.find(',');
+        size_t comma2 = line.find(',', comma1 + 1);
+        if (comma1 != std::string::npos && comma2 != std::string::npos) {
+            std::string name = line.substr(0, comma1);
+            double powerRating = std::stod(line.substr(comma1 + 1, comma2 - comma1 - 1));
+            double dailyUsageHours = std::stod(line.substr(comma2 + 1));
+            appliances.push_back(Appliance(name, powerRating, dailyUsageHours));
+        }
+    }
+    file.close();
+    return appliances;
+}
+
+int main() {
+    std::vector<Appliance> appliances = loadAppliances();
+    int choice;
+    double tariff = 0; // tariff per kWh
+
+    do {
+        std::cout << "Electrical Load Monitoring\n";
+        std::cout << "1. Register appliance\n";
+        std::cout << "2. View appliances\n";
+        std::cout << "3. Calculate energy consumption\n";
+        std::cout << "4. Set electricity tariff\n";
+        std::cout << "5. Display billing summary\n";
+        std::cout << "6. Exit\n";
+        std::cout << "Enter choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+        case 1: {
+            std::string name;
+            double powerRating, dailyUsageHours;
+            std::cout << "Enter appliance name, power rating (W), daily usage hours: ";
+            std::cin >> name >> powerRating >> dailyUsageHours;
+            if (name.empty() || powerRating <= 0 || dailyUsageHours < 0 || dailyUsageHours > 24) {
+                std::cout << "Invalid input! Try again.\n";
+                break;
+            }
+            appliances.push_back(Appliance(name, powerRating, dailyUsageHours));
+            saveAppliances(appliances);
+            break;
+        }
+        case 2:
+            std::cout << "Registered appliances:\n";
+            for (const auto& app : appliances) {
+                std::cout << "Name: " << app.name << ", Power: " << app.powerRating << "W, Hours: " << app.dailyUsageHours << "\n";
+            }
+            break;
+        case 3: {
+            double totalEnergy = 0;
+            std::cout << "Energy consumption:\n";
+            for (const auto& app : appliances) {
+                double energy = app.calculateEnergyConsumption();
+                totalEnergy += energy;
+                std::cout << app.name << ": " << energy << " kWh\n";
+            }
+            std::cout
