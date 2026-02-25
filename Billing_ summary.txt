@@ -1,0 +1,2 @@
+Total energy consumption: 5.0 kWh
+    Total cost: GHC 10.00
