@@ -1,0 +1,152 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iomanip>
+
+using namespace std;
+
+// --- WEEK 1: Appliance Class & Management ---
+class Appliance {
+public:
+    string name;
+    double powerRating; // In Watts
+    double dailyHours;  // Usage in hours
+
+    // WEEK 2: Energy Calculation Logic
+    double calculateDailyKWh() const {
+        // Energy (kWh) = (Power (W) * Time (h)) / 1000
+        return (powerRating * dailyHours) / 1000.0;
+    }
+
+    void display() const {
+        cout << left << setw(15) << name 
+             << " | " << setw(10) << powerRating << "W"
+             << " | " << setw(10) << dailyHours << " hrs"
+             << " | " << calculateDailyKWh() << " kWh/day" << endl;
+    }
+};
+
+// --- WEEK 3 & 4: Billing and File Handling ---
+class BillingSystem {
+private:
+    vector<Appliance> appliances;
+    double tariff; // Cost per kWh
+    const string filename = "appliances.txt";
+
+public:
+    BillingSystem() : tariff(0.0) {
+        loadFromFile(); // Week 4 requirement
+    }
+
+    // Week 1 & 2: Appliance Registration
+    void addAppliance() {
+        Appliance a;
+        cout << "Enter Appliance Name: ";
+        cin.ignore();
+        getline(cin, a.name);
+        
+        // Week 3: Input Validation
+        do {
+            cout << "Enter Power Rating (Watts > 0): ";
+            cin >> a.powerRating;
+        } while (a.powerRating <= 0);
+
+        do {
+            cout << "Enter Daily Usage (0-24 hours): ";
+            cin >> a.dailyHours;
+        } while (a.dailyHours < 0 || a.dailyHours > 24);
+
+        appliances.push_back(a);
+        saveToFile();
+        cout << "Appliance added successfully!\n";
+    }
+
+    void viewAppliances() {
+        if (appliances.empty()) {
+            cout << "No appliances registered.\n";
+            return;
+        }
+        cout << "\n--- Registered Appliances ---\n";
+        cout << left << setw(15) << "Name" << " | " << setw(11) << "Power" << " | " << setw(14) << "Usage" << " | " << "Daily Energy" << endl;
+        for (const auto& a : appliances) {
+            a.display();
+        }
+    }
+
+    // Week 3: Billing and Summary
+    void generateBill() {
+        if (appliances.empty()) {
+            cout << "Please add appliances first.\n";
+            return;
+        }
+
+        cout << "Enter current Tariff (Price per kWh): ";
+        cin >> tariff;
+        if (tariff < 0) tariff = 0;
+
+        double totalKWh = 0;
+        for (const auto& a : appliances) {
+            totalKWh += a.calculateDailyKWh();
+        }
+
+        double totalCost = totalKWh * tariff;
+
+        cout << "\n--- BILLING SUMMARY ---\n";
+        cout << "Total Daily Consumption: " << totalKWh << " kWh" << endl;
+        cout << "Monthly Estimate (30 days): " << totalKWh * 30 << " kWh" << endl;
+        cout << "Total Daily Cost: GHS " << fixed << setprecision(2) << totalCost << endl;
+        cout << "Total Monthly Cost: GHS " << totalCost * 30 << endl;
+    }
+
+    // Week 4: File Persistence
+    void saveToFile() {
+        ofstream outFile(filename);
+        for (const auto& a : appliances) {
+            outFile << a.name << "," << a.powerRating << "," << a.dailyHours << endl;
+        }
+        outFile.close();
+    }
+
+    void loadFromFile() {
+        ifstream inFile(filename);
+        if (!inFile) return;
+
+        Appliance a;
+        string line, pStr, hStr;
+        while (getline(inFile, a.name, ',') && 
+               getline(inFile, pStr, ',') && 
+               getline(inFile, hStr)) {
+            a.powerRating = stod(pStr);
+            a.dailyHours = stod(hStr);
+            appliances.push_back(a);
+        }
+        inFile.close();
+    }
+};
+
+// --- Main Menu-Driven Flow (Week 2/3) ---
+int main() {
+    BillingSystem system;
+    int choice;
+
+    do {
+        cout << "\n--- Electrical Load & Billing Simulator ---\n";
+        cout << "1. Add Appliance\n";
+        cout << "2. View All Appliances\n";
+        cout << "3. Calculate Energy & Billing\n";
+        cout << "4. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: system.addAppliance(); break;
+            case 2: system.viewAppliances(); break;
+            case 3: system.generateBill(); break;
+            case 4: cout << "Exiting program...\n"; break;
+            default: cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
